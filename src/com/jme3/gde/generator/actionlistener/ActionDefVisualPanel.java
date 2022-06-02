@@ -29,7 +29,7 @@
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package src.com.jme3.gde.generator.actionlistener;
+package com.jme3.gde.generator.actionlistener;
 
 import java.awt.EventQueue;
 import java.util.HashSet;
@@ -70,7 +70,7 @@ public final class ActionDefVisualPanel extends JPanel {
         Set<String[]> data = new HashSet<>();//new String[model.getRowCount()][3];
         for (int i = 0; i < model.getRowCount(); i++) {
             data.add(new String[]{
-                (String) "\"" + model.getValueAt(i, 0) + "\"",
+                "\"" + model.getValueAt(i, 0) + "\"",
                 (String) model.getValueAt(i, 1),
                 (String) model.getValueAt(i, 2),}
             );

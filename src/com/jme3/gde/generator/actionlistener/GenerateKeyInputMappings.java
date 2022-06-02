@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package src.com.jme3.gde.generator.actionlistener;
+package com.jme3.gde.generator.actionlistener;
 
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ClassTree;
@@ -26,10 +26,12 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
+import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.api.java.source.CancellableTask;
 import org.netbeans.api.java.source.CompilationController;
 import org.netbeans.api.java.source.JavaSource;
 import org.netbeans.api.java.source.ModificationResult;
+import org.netbeans.api.java.source.Task;
 import org.netbeans.api.java.source.TreeMaker;
 import org.netbeans.api.java.source.WorkingCopy;
 import org.netbeans.spi.editor.codegen.CodeGenerator;
@@ -41,7 +43,7 @@ import org.openide.util.Lookup;
 /**
  * Displays a wizard for adding key -> action mappings and then generates
  * methods accordingly.
- * 
+ *
  * @author rickard
  */
 public class GenerateKeyInputMappings implements CodeGenerator {
@@ -62,9 +64,10 @@ public class GenerateKeyInputMappings implements CodeGenerator {
 
     @Override
     public String getDisplayName() {
-        return "Make ActionListener. Generate KeyInput mappings";
+        return "Make ActionListener";
     }
 
+    @MimeRegistration(mimeType = "text/x-java", service = CodeGenerator.Factory.class)
     public static class Factory implements CodeGenerator.Factory {
 
         @Override
@@ -93,29 +96,29 @@ public class GenerateKeyInputMappings implements CodeGenerator {
 
             JavaSource javaSource = JavaSource.forDocument(doc);
 
-            CancellableTask task = new CancellableTask<WorkingCopy>() {
+            Task task = new Task<WorkingCopy>() {
                 @Override
                 public void run(WorkingCopy workingCopy) throws IOException {
                     workingCopy.toPhase(JavaSource.Phase.RESOLVED);
-                    
+
                     CompilationUnitTree cut = workingCopy.getCompilationUnit();
                     TreeMaker make = workingCopy.getTreeMaker();
                     for (Tree typeDecl : cut.getTypeDecls()) {
                         if (Tree.Kind.CLASS == typeDecl.getKind()) {
                             ClassTree clazz = (ClassTree) typeDecl;
-                            
+
                             CompilationUnitTree newCompUnit = generateImports(make, cut);
 
                             MethodTree addMethod = generateAddMappings(make, workingCopy, actions);
                             ClassTree modifiedClazz = make.addClassMember(clazz, addMethod);
-                            
+
                             MethodTree removeMethod = generateRemoveMappings(make, workingCopy, actions);
                             modifiedClazz = make.addClassMember(modifiedClazz, removeMethod);
 
                             MethodTree writeMethod = generateOnAction(make, workingCopy, actions);
                             modifiedClazz = make.addClassMember(modifiedClazz, writeMethod);
-                            
-                            for(String[] action : actions){
+
+                            for (String[] action : actions) {
                                 MethodTree method = generateAction(make, action[ACTION]);
                                 modifiedClazz = make.addClassMember(modifiedClazz, method);
                             }
@@ -127,25 +130,23 @@ public class GenerateKeyInputMappings implements CodeGenerator {
                     }
                 }
 
-                public void cancel() {
-                }
             };
             ModificationResult result = javaSource.runModificationTask(task);
             result.commit();
-            
+
         } catch (IOException | IllegalArgumentException ex) {
             Exceptions.printStackTrace(ex);
         }
-        
+
     }
-    
-    private CompilationUnitTree generateImports(TreeMaker make, CompilationUnitTree cut){
+
+    private CompilationUnitTree generateImports(TreeMaker make, CompilationUnitTree cut) {
         ImportTree keyInput = make.Import(make.QualIdent("com.jme3.input.KeyInput"), false);
         cut = make.addCompUnitImport(cut, keyInput);
-        
+
         ImportTree keyTrigger = make.Import(make.QualIdent("com.jme3.input.controls.KeyTrigger"), false);
         cut = make.addCompUnitImport(cut, keyTrigger);
-        
+
         return cut;
     }
 
@@ -154,17 +155,29 @@ public class GenerateKeyInputMappings implements CodeGenerator {
         ExpressionTree throwsClause = make.QualIdent(element);
         return make.addClassImplementsClause(modifiedClazz, throwsClause);
     }
-    
-    private MethodTree generateAction(TreeMaker make, String action){
+
+    private MethodTree generateAction(TreeMaker make, String action) {
         ModifiersTree methodModifiers
                 = make.Modifiers(Modifier.PRIVATE,
                         Collections.<AnnotationTree>emptyList());
-        
+
+        List<VariableTree> parameters = new ArrayList<>();
+        parameters.add(make.Variable(make.Modifiers(Modifier.FINAL,
+                Collections.<AnnotationTree>emptyList()),
+                "isPressed",
+                make.PrimitiveType(TypeKind.BOOLEAN),
+                null));
+        parameters.add(make.Variable(make.Modifiers(Modifier.FINAL,
+                Collections.<AnnotationTree>emptyList()),
+                "tpf",
+                make.PrimitiveType(TypeKind.FLOAT),
+                null));
+
         return make.Method(methodModifiers,
                 action,
                 make.PrimitiveType(TypeKind.VOID),
                 Collections.<TypeParameterTree>emptyList(),
-                Collections.<VariableTree>emptyList(),
+                parameters,
                 Collections.<ExpressionTree>emptyList(),
                 "{ "
                 + String.format("// TODO: handle %s()", action)
@@ -288,7 +301,7 @@ public class GenerateKeyInputMappings implements CodeGenerator {
     }
 
     private String generateActionMapping(String name, String method) {
-        return String.format("if (!isPressed && name.equals(%s)){ \n%s();\n}", name, method);
+        return String.format("if (!isPressed && name.equals(%s)){ \n%s(isPressed, tpf);\n}", name, method);
     }
 
     private String generateAddListener(List<String> names) {

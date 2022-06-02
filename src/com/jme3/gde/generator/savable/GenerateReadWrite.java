@@ -1,4 +1,4 @@
-package src.com.jme3.gde.generator.savable;
+package com.jme3.gde.generator.savable;
 
 import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.ClassTree;
@@ -24,6 +24,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.swing.text.Document;
+import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.api.java.source.CancellableTask;
 import org.netbeans.api.java.source.CompilationController;
 import org.netbeans.api.java.source.JavaSource;
@@ -33,11 +34,11 @@ import org.netbeans.api.java.source.TreeMaker;
 import org.netbeans.api.java.source.TreeUtilities;
 import org.netbeans.api.java.source.WorkingCopy;
 import org.openide.util.Exceptions;
-import src.com.jme3.gde.generator.util.GeneratorUtils;
+import com.jme3.gde.generator.util.GeneratorUtils;
 
 /**
  * Generates read and write methods based on the class's fields.
- * 
+ *
  * @author rickard
  */
 public class GenerateReadWrite implements CodeGenerator {
@@ -52,6 +53,7 @@ public class GenerateReadWrite implements CodeGenerator {
         path = context.lookup(TreePath.class);
     }
 
+    @MimeRegistration(mimeType = "text/x-java", service = CodeGenerator.Factory.class)
     public static class Factory implements CodeGenerator.Factory {
 
         @Override
@@ -62,7 +64,7 @@ public class GenerateReadWrite implements CodeGenerator {
 
     @Override
     public String getDisplayName() {
-        return "Make Savable. Generate read() and write()";
+        return "Make Savable";
     }
 
     /**

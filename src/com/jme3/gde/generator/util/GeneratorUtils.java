@@ -1,12 +1,11 @@
-package src.com.jme3.gde.generator.util;
+package com.jme3.gde.generator.util;
 
 /**
  *
  * @author rickard
  */
 public class GeneratorUtils {
-    
-    
+
     private static boolean DEFAULT_BOOLEAN;
     private static byte DEFAULT_BYTE;
     private static short DEFAULT_SHORT;
@@ -14,8 +13,7 @@ public class GeneratorUtils {
     private static long DEFAULT_LONG;
     private static float DEFAULT_FLOAT;
     private static double DEFAULT_DOUBLE;
-    
-   
+
     public static Object getDefaultValue(String clazz) {
         switch (clazz) {
             case "boolean":
@@ -125,5 +123,5 @@ public class GeneratorUtils {
                 return "read";
         }
     }
-    
+
 }
