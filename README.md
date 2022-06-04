@@ -9,3 +9,4 @@ Installing:
 4. Install.
 5. Right click anywhere inside the class curly braces and select "Insert code..." to access the features.
 
+Tested with JMonkeyEngine3 SDK 3.3 and 3.4 (unreleased)
